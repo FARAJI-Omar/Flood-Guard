@@ -13,11 +13,12 @@ public interface UserMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "password", ignore = true)
     @Mapping(target = "role", ignore = true)
+    @Mapping(target = "active", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
     User toEntity(RegisterRequest request);
 
     @Mapping(target = "accessToken", ignore = true)
     @Mapping(target = "refreshToken", ignore = true)
-    @Mapping(target = "role", ignore = true)
     AuthResponse toAuthResponse(User user);
 
     @Mapping(target = "role", expression = "java(user.getRole().name())")
