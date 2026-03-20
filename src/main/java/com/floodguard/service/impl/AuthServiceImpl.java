@@ -1,11 +1,14 @@
 package com.floodguard.service.impl;
 
 import com.floodguard.dto.request.LoginRequest;
+import com.floodguard.dto.request.RefreshTokenRequest;
 import com.floodguard.dto.request.RegisterRequest;
 import com.floodguard.dto.response.AuthResponse;
+import com.floodguard.dto.response.TokenResponse;
 import com.floodguard.entity.User;
 import com.floodguard.enums.Role;
 import com.floodguard.exception.EmailAlreadyExistsException;
+import com.floodguard.exception.UsernameAlreadyExistsException;
 import com.floodguard.exception.UserNotFoundException;
 import com.floodguard.mapper.UserMapper;
 import com.floodguard.repository.UserRepository;
@@ -33,47 +36,66 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public AuthResponse register(RegisterRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
-            throw new EmailAlreadyExistsException("Email already exists");
+            throw new EmailAlreadyExistsException("Email already in use: " + request.getEmail());
         }
-
-        Role role = request.getRole();
-        if (role == null || role == Role.ADMIN) {
-            role = Role.STUDENT;
+        if (userRepository.existsByUsername(request.getUsername())) {
+            throw new UsernameAlreadyExistsException("Username already taken: " + request.getUsername());
         }
 
         User user = userMapper.toEntity(request);
         user.setPassword(passwordEncoder.encode(request.getPassword()));
-        user.setRole(role);
+        user.setRole(Role.USER);
+        user.setActive(true);
         userRepository.save(user);
 
-        UserDetails userDetails = userDetailsService.loadUserByUsername(user.getEmail());
-        String accessToken = jwtService.generateAccessToken(userDetails);
-        String refreshToken = jwtService.generateRefreshToken(userDetails);
-
-        AuthResponse response = userMapper.toAuthResponse(user);
-        response.setAccessToken(accessToken);
-        response.setRefreshToken(refreshToken);
-        response.setRole(user.getRole().name());
-        return response;
+        return buildAuthResponse(user);
     }
 
     @Override
     public AuthResponse login(LoginRequest request) {
         authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
-        );
+                new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
 
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new UserNotFoundException("User not found"));
 
-        UserDetails userDetails = userDetailsService.loadUserByUsername(request.getEmail());
-        String accessToken = jwtService.generateAccessToken(userDetails);
-        String refreshToken = jwtService.generateRefreshToken(userDetails);
+        return buildAuthResponse(user);
+    }
+
+    @Override
+    public TokenResponse refreshToken(RefreshTokenRequest request) {
+        String refreshToken = request.getRefreshToken();
+        
+        if (!jwtService.isRefreshToken(refreshToken)) {
+            throw new IllegalArgumentException("Invalid token type. Refresh token required");
+        }
+        
+        String userEmail = jwtService.extractUsername(refreshToken);
+        User user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
+        
+        UserDetails userDetails = userDetailsService.loadUserByUsername(userEmail);
+        
+        if (!jwtService.isTokenValid(refreshToken, userDetails)) {
+            throw new IllegalArgumentException("Invalid or expired refresh token");
+        }
+        
+        String newAccessToken = jwtService.generateAccessToken(userDetails, user.getRole().name());
+        
+        return TokenResponse.builder()
+                .accessToken(newAccessToken)
+                .build();
+    }
+
+    private AuthResponse buildAuthResponse(User user) {
+        UserDetails userDetails = userDetailsService.loadUserByUsername(user.getEmail());
+        String role = user.getRole().name();
+        String accessToken = jwtService.generateAccessToken(userDetails, role);
+        String refreshToken = jwtService.generateRefreshToken(userDetails, role);
 
         AuthResponse response = userMapper.toAuthResponse(user);
         response.setAccessToken(accessToken);
         response.setRefreshToken(refreshToken);
-        response.setRole(user.getRole().name());
         return response;
     }
 }
