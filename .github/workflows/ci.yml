@@ -44,7 +44,7 @@ jobs:
         DB_URL: jdbc:postgresql://localhost:5432/flood_guard
         DB_USERNAME: testuser
         DB_PASSWORD: testpass
-        JWT_SECRET: test-jwt-secret-for-ci-only
+        JWT_SECRET: dGVzdC1qd3Qtc2VjcmV0LWZvci1jaS1vbmx5LXRoYXQtaXMtbG9uZy1lbm91Z2gtZm9yLWhzMjU2LWFsZ29yaXRobQ==
         JWT_ACCESS_TOKEN_EXPIRATION: 900000
         JWT_REFRESH_TOKEN_EXPIRATION: 604800000
       run: mvn test
