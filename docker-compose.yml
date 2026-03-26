@@ -1,0 +1,39 @@
+services:
+  db:
+    image: postgis/postgis:15-3.3
+    environment:
+      POSTGRES_DB: flood_guard
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-db:/docker-entrypoint-initdb.d
+    networks:
+      - floodguard-network
+
+  backend:
+    image: omarfaraji/floodguard-backend:latest
+    environment:
+      DB_URL: jdbc:postgresql://db:5432/flood_guard
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_ACCESS_TOKEN_EXPIRATION: ${JWT_ACCESS_TOKEN_EXPIRATION:-900000}
+      JWT_REFRESH_TOKEN_EXPIRATION: ${JWT_REFRESH_TOKEN_EXPIRATION:-604800000}
+      APP_SEED_ADMIN_ENABLED: ${APP_SEED_ADMIN_ENABLED:-true}
+      APP_SEED_ADMIN_USERNAME: ${APP_SEED_ADMIN_USERNAME:-admin}
+      APP_SEED_ADMIN_EMAIL: ${APP_SEED_ADMIN_EMAIL:-admin@floodguard.ma}
+      APP_SEED_ADMIN_PASSWORD: ${APP_SEED_ADMIN_PASSWORD:-admin123}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:4200}
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+    networks:
+      - floodguard-network
+
+networks:
+  floodguard-network:
+
+volumes:
+  postgres_data:
