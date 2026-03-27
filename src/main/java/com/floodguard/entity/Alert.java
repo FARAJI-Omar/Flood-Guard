@@ -26,9 +26,8 @@ public class Alert {
     @Column(nullable = false)
     private Double precipitation;
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "threshold_id", referencedColumnName = "id")
-    private AlertThreshold alertThreshold;
+    @Column(nullable = false)
+    private Double threshold;
 
     @Column(nullable = false)
     private LocalDateTime timestamp;
