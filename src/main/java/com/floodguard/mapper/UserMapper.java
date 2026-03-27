@@ -14,6 +14,8 @@ public interface UserMapper {
     @Mapping(target = "password", ignore = true)
     @Mapping(target = "role", ignore = true)
     @Mapping(target = "active", ignore = true)
+    @Mapping(target = "simulations", ignore = true)
+    @Mapping(target = "floodEvents", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     User toEntity(RegisterRequest request);
 
@@ -21,6 +23,12 @@ public interface UserMapper {
     @Mapping(target = "refreshToken", ignore = true)
     AuthResponse toAuthResponse(User user);
 
-    @Mapping(target = "role", expression = "java(user.getRole().name())")
-    UserResponse toUserResponse(User user);
+    @Mapping(target = "role", ignore = true)
+    UserResponse toUserResponseBase(User user);
+
+    default UserResponse toUserResponse(User user) {
+        UserResponse response = toUserResponseBase(user);
+        response.setRole(user.getRole().name());
+        return response;
+    }
 }

@@ -58,7 +58,7 @@ class AlertServiceImplTest {
                 .id(1L)
                 .cityName("London")
                 .precipitation(60.0)
-                .threshold(50.0)
+                .alertThreshold(testThreshold)
                 .timestamp(LocalDateTime.now())
                 .severity(Severity.WARNING)
                 .status("active")
@@ -117,7 +117,7 @@ class AlertServiceImplTest {
 
         assertNotNull(response);
         assertEquals(75.0, response.getValue());
-        
+
         ArgumentCaptor<AlertThreshold> captor = ArgumentCaptor.forClass(AlertThreshold.class);
         verify(thresholdRepository, times(1)).save(captor.capture());
         assertEquals(75.0, captor.getValue().getValue());
@@ -126,7 +126,7 @@ class AlertServiceImplTest {
     @Test
     void updateThreshold_WhenNoThresholdExists_CreatesNewThreshold() {
         when(thresholdRepository.findAll()).thenReturn(Collections.emptyList());
-        
+
         AlertThreshold newThreshold = new AlertThreshold();
         newThreshold.setValue(60.0);
         when(thresholdRepository.save(any(AlertThreshold.class))).thenReturn(newThreshold);
@@ -196,7 +196,7 @@ class AlertServiceImplTest {
                 .id(2L)
                 .cityName("Paris")
                 .precipitation(100.0)
-                .threshold(50.0)
+                .alertThreshold(testThreshold)
                 .timestamp(LocalDateTime.now())
                 .severity(Severity.DANGER)
                 .status("active")
@@ -233,7 +233,7 @@ class AlertServiceImplTest {
                 .id(2L)
                 .cityName("Paris")
                 .precipitation(80.0)
-                .threshold(50.0)
+                .alertThreshold(testThreshold)
                 .timestamp(LocalDateTime.now())
                 .severity(Severity.WARNING)
                 .status("active")

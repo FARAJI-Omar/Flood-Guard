@@ -50,15 +50,16 @@ public class AlertServiceImpl implements AlertService {
     public AlertResponse createAlert(AlertRequest request) {
         AlertThreshold thresholdEntity = thresholdRepository.findAll().stream()
                 .findFirst()
-                .orElseThrow(() -> new ThresholdNotFoundException("Threshold not configured. Please configure threshold first."));
-        
+                .orElseThrow(() -> new ThresholdNotFoundException(
+                        "Threshold not configured. Please configure threshold first."));
+
         Double thresholdValue = thresholdEntity.getValue();
         Severity severity = calculateSeverity(request.getPrecipitation(), thresholdValue);
 
         Alert alert = Alert.builder()
                 .cityName(request.getCityName())
                 .precipitation(request.getPrecipitation())
-                .threshold(thresholdValue)
+                .alertThreshold(thresholdEntity)
                 .timestamp(LocalDateTime.now())
                 .severity(severity)
                 .status("active")
@@ -85,7 +86,7 @@ public class AlertServiceImpl implements AlertService {
                 .id(alert.getId())
                 .cityName(alert.getCityName())
                 .precipitation(alert.getPrecipitation())
-                .threshold(alert.getThreshold())
+                .threshold(alert.getAlertThreshold().getValue())
                 .timestamp(alert.getTimestamp())
                 .severity(alert.getSeverity())
                 .status(alert.getStatus())

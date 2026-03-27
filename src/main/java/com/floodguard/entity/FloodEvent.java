@@ -39,4 +39,8 @@ public class FloodEvent {
 
     @Column(columnDefinition = "geometry(MultiPolygon, 4326)")
     private MultiPolygon geom;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private User user;
 }
