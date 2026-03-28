@@ -12,6 +12,9 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
+// this file is responsible for handling unauthorized access attempts 
+// and returning JSON response instead of the default HTML error page. 
+// It implements the AuthenticationEntryPoint interface and is used in the SecurityConfig to handle authentication exceptions.
 @Component
 public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
 
